@@ -1,0 +1,23 @@
+name: tagprobe
+on:
+  workflow_dispatch:
+    inputs:
+      tag: { description: tag to push, required: true, default: v0.0.6-lab }
+permissions:
+  contents: write
+jobs:
+  push-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: identity
+        run: |
+          echo "actor=${GITHUB_ACTOR}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+      - name: create and push tag
+        run: |
+          TAG="${{ inputs.tag }}"
+          git tag -f "$TAG"
+          git push origin "refs/tags/$TAG" 2>&1 | tee /tmp/push.out || true
